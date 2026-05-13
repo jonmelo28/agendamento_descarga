@@ -1,0 +1,114 @@
+<%
+  const isEdicao = agendamento && agendamento.id;
+  titulo = isEdicao ? 'Editar Agendamento' : 'Novo Agendamento';
+  activePage = isEdicao ? 'agendamentos' : 'agendamentos-novo';
+%>
+<%- include('../partials/header') %>
+
+<div style="margin-bottom:16px">
+  <a href="/agendamentos" class="btn btn-outline btn-sm">
+    <svg fill="none" viewBox="0 0 24 24" stroke="currentColor" style="width:13px;height:13px"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18"/></svg>
+    Voltar
+  </a>
+</div>
+
+<div class="card" style="max-width:700px">
+  <div class="card-header">
+    <span class="card-title"><%= titulo %></span>
+  </div>
+  <div class="card-body">
+    <% if (erro) { %>
+      <div class="alert alert-danger">⚠ <%= erro %></div>
+    <% } %>
+
+    <form method="POST" action="<%= isEdicao ? `/agendamentos/${agendamento.id}` : '/agendamentos' %>">
+
+      <div class="form-group">
+        <label class="form-label" for="nome_fornecedor">Nome do Fornecedor *</label>
+        <input
+          class="form-control"
+          type="text"
+          id="nome_fornecedor"
+          name="nome_fornecedor"
+          value="<%= agendamento ? agendamento.nome_fornecedor : '' %>"
+          placeholder="Ex.: Transportadora ABC Ltda"
+          required
+          autofocus
+        >
+      </div>
+
+      <div class="form-group">
+        <label class="form-label" for="numeros_notas">Números das Notas Agendadas *</label>
+        <input
+          class="form-control"
+          type="text"
+          id="numeros_notas"
+          name="numeros_notas"
+          value="<%= agendamento ? agendamento.numeros_notas : '' %>"
+          placeholder="Ex.: NF-001, NF-002, NF-003"
+          required
+        >
+        <small style="color:#64748b;font-size:.75rem">Separe múltiplas notas por vírgula</small>
+      </div>
+
+      <div class="form-grid">
+        <div class="form-group">
+          <label class="form-label" for="data_agendamento">Data de Agendamento *</label>
+          <input
+            class="form-control"
+            type="date"
+            id="data_agendamento"
+            name="data_agendamento"
+            value="<%= agendamento ? (agendamento.data_agendamento ? agendamento.data_agendamento.toString().split('T')[0] : '') : '' %>"
+            required
+          >
+        </div>
+
+        <div class="form-group">
+          <label class="form-label" for="canal">Canal do Agendamento *</label>
+          <select class="form-control" id="canal" name="canal" required>
+            <option value="">Selecione o canal...</option>
+            <% const canais = ['Canal 1', 'Canal 2', 'Canal 3', 'Canal 4', 'Canal 5', 'Canal Especial']; %>
+            <% canais.forEach(c => { %>
+              <option value="<%= c %>" <%= agendamento && agendamento.canal === c ? 'selected' : '' %>><%= c %></option>
+            <% }); %>
+          </select>
+        </div>
+
+        <div class="form-group">
+        <label class="form-label" for="volume">Volume</label>
+        <input
+          class="form-control"
+          type="number"
+          id="volume"
+          name="volume"
+          value="<%= agendamento ? agendamento.volume : '' %>"
+          placeholder="Ex.: 1000"
+        >
+      </div>
+
+      <div class="form-group">
+        <label class="form-label" for="contato">Contato</label>
+        <input
+          class="form-control"
+          type="text"
+          id="contato"
+          name="contato"
+          value="<%= agendamento ? agendamento.contato : '' %>"
+          placeholder="Ex.: contato@sistema.com"
+        >
+      </div>
+      </div>
+
+      <div style="display:flex;gap:10px;justify-content:flex-end;margin-top:8px">
+        <a href="/agendamentos" class="btn btn-outline">Cancelar</a>
+        <button type="submit" class="btn btn-primary">
+          <svg fill="none" viewBox="0 0 24 24" stroke="currentColor" style="width:15px;height:15px"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/></svg>
+          <%= isEdicao ? 'Salvar Alterações' : 'Criar Agendamento' %>
+        </button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<%- include('../partials/footer') %>

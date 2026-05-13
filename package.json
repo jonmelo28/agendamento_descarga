@@ -1,0 +1,29 @@
+{
+  "name": "agendamento-descarga",
+  "version": "1.0.0",
+  "description": "Sistema de agendamento de descarga com painel administrativo",
+  "main": "app.js",
+  "scripts": {
+    "start": "node app.js",
+    "dev": "nodemon app.js",
+    "bot": "node bot/index.js",
+    "seed": "node scripts/seed.js"
+  },
+  "dependencies": {
+    "bcryptjs": "^2.4.3",
+    "cookie-parser": "^1.4.6",
+    "dotenv": "^16.4.5",
+    "ejs": "^3.1.10",
+    "express": "^4.19.2",
+    "express-session": "^1.18.0",
+    "jsonwebtoken": "^9.0.2",
+    "method-override": "^3.0.0",
+    "moment": "^2.30.1",
+    "mysql2": "^3.9.7",
+    "node-telegram-bot-api": "^0.65.1",
+    "pdfkit": "^0.15.0"
+  },
+  "devDependencies": {
+    "nodemon": "^3.1.0"
+  }
+}

@@ -1,0 +1,68 @@
+<%
+  const isEdicao = botUsuario && botUsuario.id;
+  titulo = isEdicao ? 'Editar Usuário do Bot' : 'Novo Usuário do Bot';
+  activePage = 'bot-usuarios';
+%>
+<%- include('../partials/header') %>
+
+<div style="margin-bottom:16px">
+  <a href="/bot-usuarios" class="btn btn-outline btn-sm">← Voltar</a>
+</div>
+
+<div class="card" style="max-width:520px">
+  <div class="card-header"><span class="card-title"><%= titulo %></span></div>
+  <div class="card-body">
+    <% if (erro) { %><div class="alert alert-danger">⚠ <%= erro %></div><% } %>
+
+    <% if (!isEdicao) { %>
+    <div class="alert" style="background:#eff6ff;border-left:4px solid #3b82f6;color:#1e40af">
+      ℹ Para obter o Telegram ID de um usuário, peça que ele envie uma mensagem para o bot e use o comando /id, ou utilize o bot @userinfobot no Telegram.
+    </div>
+    <% } %>
+
+    <form method="POST" action="<%= isEdicao ? `/bot-usuarios/${botUsuario.id}` : '/bot-usuarios' %>">
+      <div class="form-group">
+        <label class="form-label">Nome *</label>
+        <input class="form-control" type="text" name="nome"
+          value="<%= botUsuario ? botUsuario.nome : '' %>" required autofocus>
+      </div>
+
+      <div class="form-grid">
+        <div class="form-group">
+          <label class="form-label">Telegram ID *</label>
+          <input class="form-control mono" type="text" name="telegram_id"
+            value="<%= botUsuario ? botUsuario.telegram_id : '' %>"
+            placeholder="Ex.: 123456789"
+            <%= isEdicao ? 'readonly style="background:#f1f5f9"' : 'required' %>>
+          <% if (isEdicao) { %><small style="color:#64748b;font-size:.7rem">O ID não pode ser alterado</small><% } %>
+        </div>
+
+        <div class="form-group">
+          <label class="form-label">Username (opcional)</label>
+          <input class="form-control" type="text" name="username"
+            value="<%= botUsuario && botUsuario.username ? botUsuario.username : '' %>"
+            placeholder="sem o @">
+        </div>
+      </div>
+
+      <% if (isEdicao) { %>
+      <div class="form-group">
+        <label class="form-label">Status</label>
+        <select class="form-control" name="ativo">
+          <option value="1" <%= botUsuario && botUsuario.ativo ? 'selected' : '' %>>Autorizado</option>
+          <option value="0" <%= botUsuario && !botUsuario.ativo ? 'selected' : '' %>>Bloqueado</option>
+        </select>
+      </div>
+      <% } %>
+
+      <div style="display:flex;gap:10px;justify-content:flex-end">
+        <a href="/bot-usuarios" class="btn btn-outline">Cancelar</a>
+        <button type="submit" class="btn btn-primary">
+          <%= isEdicao ? 'Salvar' : 'Adicionar Usuário' %>
+        </button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<%- include('../partials/footer') %>

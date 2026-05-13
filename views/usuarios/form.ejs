@@ -1,0 +1,93 @@
+<%
+  const isEdicao = usuario && usuario.id;
+  titulo = isEdicao ? 'Editar Usuário' : 'Novo Usuário';
+  activePage = 'usuarios';
+%>
+<%- include('../partials/header') %>
+
+<div style="margin-bottom:16px">
+  <a href="/usuarios" class="btn btn-outline btn-sm">← Voltar</a>
+</div>
+
+<div class="card" style="max-width:600px">
+  <div class="card-header"><span class="card-title"><%= titulo %></span></div>
+  <div class="card-body">
+    <% if (erro) { %><div class="alert alert-danger">⚠ <%= erro %></div><% } %>
+    <% if (typeof req !== 'undefined' && req.query && req.query.erro) { %><div class="alert alert-danger">⚠ <%= req.query.erro %></div><% } %>
+
+    <form method="POST" action="<%= isEdicao ? `/usuarios/${usuario.id}` : '/usuarios' %>">
+      <div class="form-grid">
+        <div class="form-group">
+          <label class="form-label">Nome Completo *</label>
+          <input class="form-control" type="text" name="nome" value="<%= usuario ? usuario.nome : '' %>" required autofocus>
+        </div>
+        <div class="form-group">
+          <label class="form-label">E-mail *</label>
+          <input class="form-control" type="email" name="email" value="<%= usuario ? usuario.email : '' %>" required>
+        </div>
+      </div>
+
+      <div class="form-grid">
+        <div class="form-group">
+          <label class="form-label">Perfil *</label>
+          <select class="form-control" name="perfil" required>
+            <option value="operador" <%= !isEdicao || (usuario && usuario.perfil === 'operador') ? 'selected' : '' %>>Operador</option>
+            <option value="admin"    <%= isEdicao && usuario && usuario.perfil === 'admin' ? 'selected' : '' %>>Administrador</option>
+          </select>
+        </div>
+        <% if (isEdicao) { %>
+        <div class="form-group">
+          <label class="form-label">Status</label>
+          <select class="form-control" name="ativo">
+            <option value="1" <%= usuario && usuario.ativo ? 'selected' : '' %>>Ativo</option>
+            <option value="0" <%= usuario && !usuario.ativo ? 'selected' : '' %>>Inativo</option>
+          </select>
+        </div>
+        <% } %>
+      </div>
+
+      <% if (!isEdicao) { %>
+      <div class="form-grid">
+        <div class="form-group">
+          <label class="form-label">Senha *</label>
+          <input class="form-control" type="password" name="senha" placeholder="Mín. 8 caracteres" required>
+        </div>
+        <div class="form-group">
+          <label class="form-label">Confirmar Senha *</label>
+          <input class="form-control" type="password" name="confirmaSenha" placeholder="Repita a senha" required>
+        </div>
+      </div>
+      <% } %>
+
+      <div style="display:flex;gap:10px;justify-content:flex-end">
+        <a href="/usuarios" class="btn btn-outline">Cancelar</a>
+        <button type="submit" class="btn btn-primary">
+          <%= isEdicao ? 'Salvar Alterações' : 'Criar Usuário' %>
+        </button>
+      </div>
+    </form>
+
+    <% if (isEdicao) { %>
+    <!-- Alterar Senha -->
+    <hr style="margin:28px 0;border-color:#e2e8f0">
+    <h3 style="font-size:.85rem;font-weight:600;margin-bottom:16px;color:#334155">Alterar Senha</h3>
+    <form method="POST" action="/usuarios/<%= usuario.id %>/senha">
+      <div class="form-grid">
+        <div class="form-group">
+          <label class="form-label">Nova Senha</label>
+          <input class="form-control" type="password" name="novaSenha" placeholder="Mín. 8 caracteres" required>
+        </div>
+        <div class="form-group">
+          <label class="form-label">Confirmar Nova Senha</label>
+          <input class="form-control" type="password" name="confirmaSenha" placeholder="Repita" required>
+        </div>
+      </div>
+      <div style="display:flex;justify-content:flex-end">
+        <button type="submit" class="btn btn-warning">Alterar Senha</button>
+      </div>
+    </form>
+    <% } %>
+  </div>
+</div>
+
+<%- include('../partials/footer') %>

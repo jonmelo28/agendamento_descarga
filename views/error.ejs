@@ -1,0 +1,10 @@
+<%- include('./partials/header') %>
+
+<div style="text-align:center;padding:60px 20px">
+  <div style="font-size:4rem;margin-bottom:16px">🚫</div>
+  <h2 style="font-size:1.2rem;color:#0f172a;margin-bottom:8px"><%= titulo || 'Erro' %></h2>
+  <p style="color:#64748b;margin-bottom:24px"><%= mensagem || 'Ocorreu um erro inesperado.' %></p>
+  <a href="/agendamentos" class="btn btn-primary">Voltar ao início</a>
+</div>
+
+<%- include('./partials/footer') %>
