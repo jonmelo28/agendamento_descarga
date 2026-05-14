@@ -1,19 +1,18 @@
 <%
   const isEdicao = usuario && usuario.id;
-  titulo = isEdicao ? 'Editar Usuário' : 'Novo Usuário';
+  titulo = isEdicao ? (modoProprioUsuario ? 'Meu Perfil' : 'Editar Usuário') : 'Novo Usuário';
   activePage = 'usuarios';
 %>
 <%- include('../partials/header') %>
 
 <div style="margin-bottom:16px">
-  <a href="/usuarios" class="btn btn-outline btn-sm">← Voltar</a>
+  <a href="<%= modoProprioUsuario ? '/agendamentos' : '/usuarios' %>" class="btn btn-outline btn-sm">← Voltar</a>
 </div>
 
 <div class="card" style="max-width:600px">
   <div class="card-header"><span class="card-title"><%= titulo %></span></div>
   <div class="card-body">
     <% if (erro) { %><div class="alert alert-danger">⚠ <%= erro %></div><% } %>
-    <% if (typeof req !== 'undefined' && req.query && req.query.erro) { %><div class="alert alert-danger">⚠ <%= req.query.erro %></div><% } %>
 
     <form method="POST" action="<%= isEdicao ? `/usuarios/${usuario.id}` : '/usuarios' %>">
       <div class="form-grid">
@@ -27,6 +26,7 @@
         </div>
       </div>
 
+      <% if (!modoProprioUsuario) { %>
       <div class="form-grid">
         <div class="form-group">
           <label class="form-label">Perfil *</label>
@@ -45,6 +45,13 @@
         </div>
         <% } %>
       </div>
+      <% } else { %>
+        <!-- Operador vendo próprio perfil: mostra perfil como leitura -->
+        <div class="form-group">
+          <label class="form-label">Perfil</label>
+          <input class="form-control" type="text" value="<%= usuario ? usuario.perfil : '' %>" disabled style="background:#f1f5f9;color:#64748b">
+        </div>
+      <% } %>
 
       <% if (!isEdicao) { %>
       <div class="form-grid">
@@ -60,7 +67,7 @@
       <% } %>
 
       <div style="display:flex;gap:10px;justify-content:flex-end">
-        <a href="/usuarios" class="btn btn-outline">Cancelar</a>
+        <a href="<%= modoProprioUsuario ? '/agendamentos' : '/usuarios' %>" class="btn btn-outline">Cancelar</a>
         <button type="submit" class="btn btn-primary">
           <%= isEdicao ? 'Salvar Alterações' : 'Criar Usuário' %>
         </button>
@@ -68,9 +75,8 @@
     </form>
 
     <% if (isEdicao) { %>
-    <!-- Alterar Senha -->
     <hr style="margin:28px 0;border-color:#e2e8f0">
-    <h3 style="font-size:.85rem;font-weight:600;margin-bottom:16px;color:#334155">Alterar Senha</h3>
+    <h3 style="font-size:.85rem;font-weight:600;margin-bottom:16px;color:#334155">🔒 Alterar Senha</h3>
     <form method="POST" action="/usuarios/<%= usuario.id %>/senha">
       <div class="form-grid">
         <div class="form-group">

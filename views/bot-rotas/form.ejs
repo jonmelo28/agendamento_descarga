@@ -1,0 +1,53 @@
+<%
+  const isEdicao = rota && rota.id;
+  titulo = isEdicao ? 'Editar Rota do Bot' : 'Nova Rota do Bot';
+  activePage = 'bot-rotas';
+%>
+<%- include('../partials/header') %>
+
+<div style="margin-bottom:16px"><a href="/bot-rotas" class="btn btn-outline btn-sm">← Voltar</a></div>
+
+<div class="card" style="max-width:620px">
+  <div class="card-header"><span class="card-title"><%= titulo %></span></div>
+  <div class="card-body">
+    <% if (erro) { %><div class="alert alert-danger">⚠ <%= erro %></div><% } %>
+
+    <form method="POST" action="<%= isEdicao ? `/bot-rotas/${rota.id}` : '/bot-rotas' %>">
+      <div class="form-group">
+        <label class="form-label">Título (exibido no menu do bot) *</label>
+        <input class="form-control" type="text" name="titulo"
+          value="<%= rota ? rota.titulo : '' %>"
+          placeholder="Ex.: 📦 Ver agendamentos de hoje" required autofocus>
+        <small style="color:#64748b;font-size:.72rem">Use emojis para deixar o menu mais visual</small>
+      </div>
+
+      <div class="form-group">
+        <label class="form-label">Descrição / Resposta enviada ao clicar</label>
+        <textarea class="form-control" name="descricao" rows="4"
+          placeholder="Texto que o bot envia quando o usuário escolher esta opção. Deixe em branco para usar a ação padrão."><%= rota && rota.descricao ? rota.descricao : '' %></textarea>
+      </div>
+
+      <div class="form-grid">
+        <div class="form-group">
+          <label class="form-label">Ordem de exibição</label>
+          <input class="form-control" type="number" name="ordem" min="0"
+            value="<%= rota ? rota.ordem : 0 %>">
+        </div>
+        <div class="form-group">
+          <label class="form-label">Status</label>
+          <select class="form-control" name="ativo">
+            <option value="1" <%= !rota || rota.ativo ? 'selected' : '' %>>Ativa</option>
+            <option value="0" <%= rota && !rota.ativo ? 'selected' : '' %>>Inativa</option>
+          </select>
+        </div>
+      </div>
+
+      <div style="display:flex;gap:10px;justify-content:flex-end">
+        <a href="/bot-rotas" class="btn btn-outline">Cancelar</a>
+        <button type="submit" class="btn btn-primary"><%= isEdicao ? 'Salvar' : 'Criar Rota' %></button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<%- include('../partials/footer') %>

@@ -1,135 +1,120 @@
 const PDFDocument = require('pdfkit');
 const moment = require('moment');
+moment.locale('pt-br');
 
-/**
- * Gera um buffer PDF com o relatório de agendamentos.
- * @param {Array} agendamentos - Lista de agendamentos
- * @param {Object} filtros - Filtros aplicados
- * @returns {Promise<Buffer>}
- */
 function gerarPDFAgendamentos(agendamentos, filtros = {}) {
   return new Promise((resolve, reject) => {
-    const doc = new PDFDocument({ margin: 40, size: 'A4' });
+    const doc = new PDFDocument({ margin: 36, size: 'A4', layout: 'landscape' });
     const chunks = [];
-
-    doc.on('data', (chunk) => chunks.push(chunk));
+    doc.on('data', c => chunks.push(c));
     doc.on('end', () => resolve(Buffer.concat(chunks)));
     doc.on('error', reject);
 
+    const W = doc.page.width;
+
     // ---- Cabeçalho ----
-    doc.rect(0, 0, doc.page.width, 80).fill('#1a365d');
-    doc
-      .fillColor('#ffffff')
-      .fontSize(20)
-      .font('Helvetica-Bold')
-      .text('SISTEMA DE AGENDAMENTO DE DESCARGA', 40, 20, { align: 'center' });
-    doc
-      .fontSize(12)
-      .font('Helvetica')
-      .text('Relatório de Agendamentos', 40, 48, { align: 'center' });
+    doc.rect(0, 0, W, 70).fill('#0f2240');
+    doc.fillColor('#fff').fontSize(16).font('Helvetica-Bold')
+      .text('SISTEMA DE AGENDAMENTO DE DESCARGA', 36, 16, { align: 'center' });
+    doc.fontSize(10).font('Helvetica')
+      .text('Relatório de Agendamentos', 36, 40, { align: 'center' });
 
-    doc.moveDown(3);
+    doc.moveDown(4);
 
-    // ---- Informações do relatório ----
-    doc
-      .fillColor('#333333')
-      .fontSize(9)
-      .font('Helvetica')
-      .text(`Gerado em: ${moment().format('DD/MM/YYYY HH:mm:ss')}`, { align: 'right' });
+    // ---- Info do relatório ----
+    doc.fillColor('#334155').fontSize(8).font('Helvetica')
+      .text(`Gerado em: ${moment().format('DD/MM/YYYY HH:mm:ss')}`, 36, 80, { align: 'right' });
 
     if (filtros.dataInicio || filtros.dataFim) {
-      const periodo = [
+      const p = [
         filtros.dataInicio ? `De: ${moment(filtros.dataInicio).format('DD/MM/YYYY')}` : '',
-        filtros.dataFim    ? `Até: ${moment(filtros.dataFim).format('DD/MM/YYYY')}` : '',
+        filtros.dataFim ? `Até: ${moment(filtros.dataFim).format('DD/MM/YYYY')}` : '',
       ].filter(Boolean).join('  |  ');
-      doc.text(`Período: ${periodo}`, { align: 'right' });
+      doc.text(`Período: ${p}`, 36, 90, { align: 'right' });
     }
 
-    doc.moveDown(0.5);
-
     // ---- Estatísticas ----
-    const total      = agendamentos.length;
-    const recebidos  = agendamentos.filter(a => a.recebido === 1).length;
-    const pendentes  = total - recebidos;
+    const total = agendamentos.length;
+    const recebidos = agendamentos.filter(a => a.recebido === 1).length;
+    const sy = 105;
+    doc.rect(36, sy, W - 72, 36).fill('#f1f5f9');
+    doc.fillColor('#0f2240').fontSize(9).font('Helvetica-Bold')
+      .text(`Total: ${total}`, 56, sy + 13)
+      .text(`Recebidos: ${recebidos}`, 200, sy + 13)
+      .text(`Pendentes: ${total - recebidos}`, 360, sy + 13);
 
-    const statsY = doc.y;
-    doc.rect(40, statsY, doc.page.width - 80, 40).fill('#edf2f7');
-    doc
-      .fillColor('#1a365d')
-      .fontSize(10)
-      .font('Helvetica-Bold')
-      .text(`Total: ${total}`, 60, statsY + 14);
-    doc.text(`Recebidos: ${recebidos}`, 200, statsY + 14);
-    doc.text(`Pendentes: ${pendentes}`, 360, statsY + 14);
+    // ---- Helper: normaliza data_agendamento para string YYYY-MM-DD ----
+    function normalizarData(raw) {
+      if (raw instanceof Date) {
+        const ano = raw.getUTCFullYear();
+        const mes = String(raw.getUTCMonth() + 1).padStart(2, '0');
+        const dia = String(raw.getUTCDate()).padStart(2, '0');
+        return `${ano}-${mes}-${dia}`;
+      }
+      return String(raw).substring(0, 10);
+    }
 
-    doc.moveDown(3);
+    // ---- Colunas da tabela ----
+    const cols   = [36, 180, 310, 415, 490, 560, 670];
+    const widths = [140, 125, 100, 70, 65, 105, 90];
+    const hdrs   = ['Fornecedor', 'Nº Notas', 'Agendamento', 'Dia', 'Volume', 'Contato', 'Status'];
 
-    // ---- Tabela ----
-    const tableTop = doc.y;
-    const colWidths = [30, 130, 90, 75, 90, 90];
-    const cols = [40, 70, 200, 290, 365, 455];
-    const headers = ['#', 'Fornecedor', 'Nº das Notas', 'Agendamento', 'Canal', 'Status'];
+    let y = sy + 46;
 
-    // Cabeçalho da tabela
-    doc.rect(40, tableTop, doc.page.width - 80, 22).fill('#2d5a8e');
-    doc.fillColor('#ffffff').fontSize(9).font('Helvetica-Bold');
-    headers.forEach((h, i) => {
-      doc.text(h, cols[i] + 4, tableTop + 7, { width: colWidths[i], ellipsis: true });
-    });
+    const desenharCabecalhoTabela = (yPos) => {
+      doc.rect(36, yPos, W - 72, 18).fill('#0f2240');
+      doc.fillColor('#fff').fontSize(7.5).font('Helvetica-Bold');
+      hdrs.forEach((h, i) => doc.text(h, cols[i] + 3, yPos + 5, { width: widths[i], ellipsis: true }));
+      return yPos + 18;
+    };
 
-    let y = tableTop + 22;
+    y = desenharCabecalhoTabela(y);
 
+    // ---- Linhas sem agrupamento — cor alternada simples ----
     agendamentos.forEach((ag, idx) => {
-      const rowHeight = 22;
+      const rowH = 20;
 
-      // Verificar quebra de página
-      if (y + rowHeight > doc.page.height - 60) {
-        doc.addPage();
-        y = 40;
+      if (y + rowH > doc.page.height - 40) {
+        doc.addPage({ layout: 'landscape' });
+        y = 36;
+        y = desenharCabecalhoTabela(y);
       }
 
-      const bg = idx % 2 === 0 ? '#f8fafc' : '#ffffff';
-      doc.rect(40, y, doc.page.width - 80, rowHeight).fill(bg);
+      // Alterna cinza-claro / branco
+      const bg = idx % 2 === 0 ? '#f1f5f9' : '#ffffff';
+      doc.rect(36, y, W - 72, rowH).fill(bg);
 
-      const statusColor = ag.recebido ? '#276749' : '#92400e';
-      const statusText  = ag.recebido ? 'Recebido' : 'Pendente';
-      const statusBg    = ag.recebido ? '#c6f6d5' : '#fef3c7';
+      const dataKey = normalizarData(ag.data_agendamento);
+      const dataMom = moment(dataKey, 'YYYY-MM-DD', true);
+      const dataFmt = dataMom.isValid() ? dataMom.format('DD/MM/YYYY') : dataKey;
+      const diaFmt  = dataMom.isValid()
+        ? dataMom.format('dddd').replace(/^\w/, c => c.toUpperCase())
+        : '';
 
-      doc.fillColor('#333333').fontSize(8).font('Helvetica');
-      doc.text(String(idx + 1),                             cols[0] + 4, y + 7, { width: colWidths[0] });
-      doc.text(ag.nome_fornecedor,                          cols[1] + 4, y + 7, { width: colWidths[1], ellipsis: true });
-      doc.text(ag.numeros_notas,                            cols[2] + 4, y + 7, { width: colWidths[2], ellipsis: true });
-      doc.text(moment(ag.data_agendamento).format('DD/MM/YYYY'), cols[3] + 4, y + 7, { width: colWidths[3] });
-      doc.text(ag.canal,                                    cols[4] + 4, y + 7, { width: colWidths[4], ellipsis: true });
+      const statusText = ag.recebido ? 'Recebido' : 'Pendente';
+      const statusBg   = ag.recebido ? '#c6f6d5' : '#fef3c7';
+      const statusClr  = ag.recebido ? '#276749' : '#92400e';
 
-      // Badge de status
-      doc.rect(cols[5] + 4, y + 5, 60, 13).fill(statusBg);
-      doc.fillColor(statusColor).font('Helvetica-Bold').fontSize(7)
-        .text(statusText, cols[5] + 4, y + 8, { width: 60, align: 'center' });
+      doc.fillColor('#1e293b').fontSize(7.5).font('Helvetica');
+      doc.text(ag.nome_fornecedor, cols[0] + 3, y + 6, { width: widths[0], ellipsis: true });
+      doc.text(ag.numeros_notas,   cols[1] + 3, y + 6, { width: widths[1], ellipsis: true });
+      doc.text(dataFmt,            cols[2] + 3, y + 6, { width: widths[2] });
+      doc.text(diaFmt,             cols[3] + 3, y + 6, { width: widths[3], ellipsis: true });
+      doc.text(ag.volume ? ag.volume.toLocaleString('pt-BR') : '—', cols[4] + 3, y + 6, { width: widths[4] });
+      doc.text(ag.contato || '—',  cols[5] + 3, y + 6, { width: widths[5], ellipsis: true });
 
-      // Data de recebimento
-      if (ag.data_recebimento) {
-        doc.fillColor('#555').font('Helvetica').fontSize(7)
-          .text(moment(ag.data_recebimento).format('DD/MM/YY'), cols[5] + 4, y + 13, { width: 60, align: 'center' });
-      }
+      // Badge status
+      doc.rect(cols[6] + 3, y + 4, 62, 12).fill(statusBg);
+      doc.fillColor(statusClr).font('Helvetica-Bold').fontSize(7)
+        .text(statusText, cols[6] + 3, y + 7, { width: 62, align: 'center' });
 
-      y += rowHeight;
+      y += rowH;
     });
 
     // ---- Rodapé ----
-    doc
-      .rect(0, doc.page.height - 35, doc.page.width, 35)
-      .fill('#1a365d');
-    doc
-      .fillColor('#ffffff')
-      .fontSize(8)
-      .font('Helvetica')
-      .text(
-        'Sistema de Agendamento de Descarga - Documento gerado automaticamente',
-        40,
-        doc.page.height - 22,
-        { align: 'center' }
-      );
+    doc.rect(0, doc.page.height - 28, W, 28).fill('#0f2240');
+    doc.fillColor('#fff').fontSize(7).font('Helvetica')
+      .text('Sistema de Agendamento de Descarga — Documento gerado automaticamente', 36, doc.page.height - 16, { align: 'center' });
 
     doc.end();
   });

@@ -29,6 +29,7 @@
           <th>Nome</th>
           <th>Telegram ID</th>
           <th>Username</th>
+          <th>Permissões</th>
           <th>Status</th>
           <th>Cadastrado em</th>
           <th style="text-align:right">Ações</th>
@@ -40,6 +41,16 @@
           <td><strong><%= bu.nome %></strong></td>
           <td><span class="mono"><%= bu.telegram_id %></span></td>
           <td><%= bu.username ? '@' + bu.username : '—' %></td>
+          <td>
+            <% const perms = Array.isArray(bu.permissoes) ? bu.permissoes : []; %>
+            <% if (perms.length === 0) { %>
+              <span style="font-size:.75rem;color:#0ea5e9;font-weight:600">Todas</span>
+            <% } else { %>
+              <span class="badge" style="background:#f0fdf4;color:#15803d;border:1px solid #bbf7d0;font-size:.72rem">
+                🔒 <%= perms.length %> rota<%= perms.length !== 1 ? 's' : '' %>
+              </span>
+            <% } %>
+          </td>
           <td>
             <span class="badge <%= bu.ativo ? 'badge-success' : 'badge-danger' %>">
               <%= bu.ativo ? 'Autorizado' : 'Bloqueado' %>

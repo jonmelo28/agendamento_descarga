@@ -2,6 +2,7 @@
   const isEdicao = botUsuario && botUsuario.id;
   titulo = isEdicao ? 'Editar Usuário do Bot' : 'Novo Usuário do Bot';
   activePage = 'bot-usuarios';
+  const permAtivas = (botUsuario && botUsuario.permissoes) ? botUsuario.permissoes.map(Number) : [];
 %>
 <%- include('../partials/header') %>
 
@@ -9,7 +10,7 @@
   <a href="/bot-usuarios" class="btn btn-outline btn-sm">← Voltar</a>
 </div>
 
-<div class="card" style="max-width:520px">
+<div class="card" style="max-width:580px">
   <div class="card-header"><span class="card-title"><%= titulo %></span></div>
   <div class="card-body">
     <% if (erro) { %><div class="alert alert-danger">⚠ <%= erro %></div><% } %>
@@ -54,6 +55,39 @@
         </select>
       </div>
       <% } %>
+
+      <!-- Permissões de rotas -->
+      <div class="form-group">
+        <label class="form-label">🔑 Opções permitidas no bot</label>
+        <div style="background:#f8fafc;border:1px solid #e2e8f0;border-radius:8px;padding:12px;margin-top:4px">
+          <p style="font-size:.75rem;color:#64748b;margin:0 0 10px 0">
+            <% if (permAtivas.length === 0 && !botUsuario) { %>
+              Marque as opções que este usuário poderá acessar. Se nenhuma for marcada, terá acesso a <strong>todas</strong>.
+            <% } else if (permAtivas.length === 0) { %>
+              Nenhuma selecionada = <strong>acesso total</strong> a todas as opções.
+            <% } else { %>
+              Somente as opções marcadas serão exibidas no menu deste usuário.
+            <% } %>
+          </p>
+
+          <% if (rotas && rotas.length > 0) { %>
+            <% rotas.forEach(rota => { %>
+            <label style="display:flex;align-items:center;gap:8px;padding:7px 6px;border-radius:5px;cursor:pointer;transition:background .15s"
+                   onmouseover="this.style.background='#e2e8f0'" onmouseout="this.style.background='transparent'">
+              <input type="checkbox" name="permissoes" value="<%= rota.id %>"
+                <%= permAtivas.includes(rota.id) ? 'checked' : '' %>
+                style="width:15px;height:15px;accent-color:#3b82f6;cursor:pointer">
+              <span style="font-size:.85rem;color:#1e293b"><%= rota.titulo %></span>
+            </label>
+            <% }); %>
+          <% } else { %>
+            <p style="font-size:.8rem;color:#94a3b8;font-style:italic">Nenhuma rota ativa cadastrada.</p>
+          <% } %>
+        </div>
+        <small style="color:#64748b;font-size:.7rem;display:block;margin-top:5px">
+          💡 Deixe tudo desmarcado para dar acesso completo ao usuário.
+        </small>
+      </div>
 
       <div style="display:flex;gap:10px;justify-content:flex-end">
         <a href="/bot-usuarios" class="btn btn-outline">Cancelar</a>

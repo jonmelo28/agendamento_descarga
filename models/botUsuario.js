@@ -5,7 +5,10 @@ const BotUsuarioModel = {
     const [rows] = await pool.query(
       'SELECT * FROM bot_usuarios ORDER BY nome ASC'
     );
-    return rows;
+    return rows.map(r => ({
+      ...r,
+      permissoes: r.permissoes ? JSON.parse(r.permissoes) : [],
+    }));
   },
 
   async buscarPorId(id) {
@@ -13,7 +16,8 @@ const BotUsuarioModel = {
       'SELECT * FROM bot_usuarios WHERE id = ?',
       [id]
     );
-    return rows[0] || null;
+    if (!rows[0]) return null;
+    return { ...rows[0], permissoes: rows[0].permissoes ? JSON.parse(rows[0].permissoes) : [] };
   },
 
   async buscarPorTelegramId(telegram_id) {
@@ -21,21 +25,24 @@ const BotUsuarioModel = {
       'SELECT * FROM bot_usuarios WHERE telegram_id = ?',
       [telegram_id]
     );
-    return rows[0] || null;
+    if (!rows[0]) return null;
+    return { ...rows[0], permissoes: rows[0].permissoes ? JSON.parse(rows[0].permissoes) : [] };
   },
 
-  async criar({ telegram_id, username, nome }) {
+  async criar({ telegram_id, username, nome, permissoes }) {
+    const permJson = permissoes && permissoes.length > 0 ? JSON.stringify(permissoes) : null;
     const [result] = await pool.query(
-      'INSERT INTO bot_usuarios (telegram_id, username, nome) VALUES (?, ?, ?)',
-      [telegram_id, username || null, nome]
+      'INSERT INTO bot_usuarios (telegram_id, username, nome, permissoes) VALUES (?, ?, ?, ?)',
+      [telegram_id, username || null, nome, permJson]
     );
     return result.insertId;
   },
 
-  async atualizar(id, { username, nome, ativo }) {
+  async atualizar(id, { username, nome, ativo, permissoes }) {
+    const permJson = permissoes && permissoes.length > 0 ? JSON.stringify(permissoes) : null;
     const [result] = await pool.query(
-      'UPDATE bot_usuarios SET username = ?, nome = ?, ativo = ? WHERE id = ?',
-      [username || null, nome, ativo, id]
+      'UPDATE bot_usuarios SET username = ?, nome = ?, ativo = ?, permissoes = ? WHERE id = ?',
+      [username || null, nome, ativo, permJson, id]
     );
     return result.affectedRows;
   },

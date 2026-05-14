@@ -4,18 +4,14 @@
 %>
 <%- include('../partials/header') %>
 
-<% if (sucesso) { %>
-  <div class="alert alert-success">✓ <%= sucesso %></div>
-<% } %>
-<% if (erro) { %>
-  <div class="alert alert-danger">⚠ <%= erro %></div>
-<% } %>
+<% if (sucesso) { %><div class="alert alert-success">✓ <%= sucesso %></div><% } %>
+<% if (erro)    { %><div class="alert alert-danger">⚠ <%= erro %></div><% } %>
 
 <!-- Filtros -->
 <form method="GET" action="/agendamentos" class="filter-bar">
   <div class="form-group">
     <label class="form-label">Fornecedor</label>
-    <input class="form-control" type="text" name="fornecedor" value="<%= filtros.fornecedor || '' %>" placeholder="Buscar fornecedor...">
+    <input class="form-control" type="text" name="fornecedor" value="<%= filtros.fornecedor || '' %>" placeholder="Buscar...">
   </div>
   <div class="form-group">
     <label class="form-label">Data inicial</label>
@@ -33,40 +29,25 @@
       <option value="1" <%= filtros.recebido === '1' ? 'selected' : '' %>>Recebidos</option>
     </select>
   </div>
-  <button type="submit" class="btn btn-primary btn-sm">
-    <svg fill="none" viewBox="0 0 24 24" stroke="currentColor" style="width:14px;height:14px"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 4a1 1 0 011-1h16a1 1 0 011 1v2.586a1 1 0 01-.293.707l-6.414 6.414a1 1 0 00-.293.707V17l-4 4v-6.586a1 1 0 00-.293-.707L3.293 7.293A1 1 0 013 6.586V4z"/></svg>
-    Filtrar
-  </button>
+  <button type="submit" class="btn btn-primary btn-sm">Filtrar</button>
   <a href="/agendamentos" class="btn btn-outline btn-sm">Limpar</a>
 </form>
 
-<!-- Card da tabela -->
 <div class="card">
   <div class="card-header">
     <span class="card-title">
-      Lista de Agendamentos
-      <span style="font-size:.75rem;font-weight:400;color:#64748b;margin-left:8px">(<%= agendamentos.length %> registro(s))</span>
+      Agendamentos
+      <span style="font-size:.75rem;font-weight:400;color:#64748b;margin-left:6px">(<%= agendamentos.length %> registro(s))</span>
     </span>
     <div style="display:flex;gap:8px;flex-wrap:wrap">
-      <a href="/agendamentos/exportar/pdf<%= Object.keys(filtros).length ? '?' + new URLSearchParams(filtros).toString() : '' %>"
-         class="btn btn-outline btn-sm" target="_blank">
-        <svg fill="none" viewBox="0 0 24 24" stroke="currentColor" style="width:14px;height:14px"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>
-        Exportar PDF
-      </a>
-      <a href="/agendamentos/novo" class="btn btn-primary btn-sm">
-        <svg fill="none" viewBox="0 0 24 24" stroke="currentColor" style="width:14px;height:14px"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/></svg>
-        Novo
-      </a>
+      <a href="/agendamentos/exportar/pdf<%= Object.keys(filtros).filter(k=>filtros[k]).length ? '?' + new URLSearchParams(Object.fromEntries(Object.entries(filtros).filter(([,v])=>v))).toString() : '' %>"
+         class="btn btn-outline btn-sm" target="_blank">📄 Exportar PDF</a>
+      <a href="/agendamentos/novo" class="btn btn-primary btn-sm">+ Novo</a>
     </div>
   </div>
 
   <% if (agendamentos.length === 0) { %>
-    <div class="empty-state">
-      <svg fill="none" viewBox="0 0 24 24" stroke="currentColor">
-        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/>
-      </svg>
-      <p>Nenhum agendamento encontrado.</p>
-    </div>
+    <div class="empty-state"><p>Nenhum agendamento encontrado.</p></div>
   <% } else { %>
   <div class="table-wrapper">
     <table class="data-table">
@@ -76,25 +57,40 @@
           <th>Fornecedor</th>
           <th>Nº Notas</th>
           <th>Agendamento</th>
-          <th>Canal</th>
+          <th>Dia</th>
+          <th>Tipo</th>
           <th>Volume</th>
           <th>Contato</th>
           <th>Status</th>
           <th>Recebimento</th>
-          <th>Cadastrado por</th>
           <th style="text-align:right">Ações</th>
         </tr>
       </thead>
       <tbody>
-        <% agendamentos.forEach((ag, i) => { %>
-        <tr>
-          <td><span class="mono" style="color:#64748b"><%= ag.id %></span></td>
+        <% agendamentos.forEach(ag => {
+          const dataKey = ag.data_agendamento.toString().split('T')[0];
+          const classe  = corPorData[dataKey] || '';
+        %>
+        <tr class="<%= classe %>">
+          <td>
+            <span class="mono" style="color:#64748b"><%= ag.id %></span>
+            <% if (ag.origem === 'bot') { %><br><span class="origem-bot">bot</span><% } %>
+          </td>
           <td><strong><%= ag.nome_fornecedor %></strong></td>
-          <td><span class="mono"><%= ag.numeros_notas %></span></td>
-          <td><%= moment(ag.data_agendamento).format('DD/MM/YYYY') %></td>
-          <td><%= ag.canal %></td>
-          <td><%= ag.volume %></td>
-          <td><%= ag.contato %></td>
+          <td><span class="mono" style="font-size:.78rem"><%= ag.numeros_notas %></span></td>
+          <td>
+            <%= moment(ag.data_agendamento).format('DD/MM/YYYY') %>
+          </td>
+          <td>
+            <%= moment(ag.data_agendamento).format('dddd') %>
+          </td>
+          <td>
+            <span class="badge <%= ag.tipo_veiculo === 'bitrem' ? 'badge-info' : 'badge-warning' %>" style="font-size:.7rem">
+              <%= ag.tipo_veiculo %>
+            </span>
+          </td>
+          <td><%= ag.volume ? ag.volume.toLocaleString('pt-BR') : '—' %></td>
+          <td style="font-size:.78rem"><%= ag.contato || '—' %></td>
           <td>
             <% if (ag.recebido) { %>
               <span class="badge badge-success">✓ Recebido</span>
@@ -102,35 +98,20 @@
               <span class="badge badge-warning">⏳ Pendente</span>
             <% } %>
           </td>
-          <td>
+          <td style="font-size:.78rem">
             <% if (ag.data_recebimento) { %>
               <%= moment(ag.data_recebimento).format('DD/MM/YYYY') %>
-            <% } else { %>
-              <span style="color:#94a3b8">—</span>
-            <% } %>
+            <% } else { %><span style="color:#94a3b8">—</span><% } %>
           </td>
-          <td style="font-size:.78rem;color:#64748b"><%= ag.criado_por %></td>
           <td>
-            <div style="display:flex;gap:5px;justify-content:flex-end">
-              <a href="/agendamentos/<%= ag.id %>/editar" class="btn btn-warning btn-sm btn-icon" title="Editar">
-                <svg fill="none" viewBox="0 0 24 24" stroke="currentColor" style="width:13px;height:13px"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z"/></svg>
-              </a>
-
+            <div style="display:flex;gap:4px;justify-content:flex-end">
+              <a href="/agendamentos/<%= ag.id %>/editar" class="btn btn-warning btn-sm btn-icon" title="Editar">✏️</a>
               <% if (!ag.recebido) { %>
-              <button
-                class="btn btn-success btn-sm btn-icon"
-                title="Marcar como Recebido"
-                onclick="abrirModalRecebido(<%= ag.id %>, '<%= ag.nome_fornecedor.replace(/'/g, "\\'") %>')">
-                <svg fill="none" viewBox="0 0 24 24" stroke="currentColor" style="width:13px;height:13px"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/></svg>
-              </button>
+              <button class="btn btn-success btn-sm btn-icon" title="Marcar Recebido"
+                onclick="abrirModalRecebido(<%= ag.id %>, '<%= ag.nome_fornecedor.replace(/'/g,"\\'") %>')">✓</button>
               <% } %>
-
-              <button
-                class="btn btn-danger btn-sm btn-icon"
-                title="Excluir"
-                onclick="confirmarExclusao(<%= ag.id %>, '<%= ag.nome_fornecedor.replace(/'/g, "\\'") %>')">
-                <svg fill="none" viewBox="0 0 24 24" stroke="currentColor" style="width:13px;height:13px"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/></svg>
-              </button>
+              <button class="btn btn-danger btn-sm btn-icon" title="Excluir"
+                onclick="confirmarExclusao(<%= ag.id %>, '<%= ag.nome_fornecedor.replace(/'/g,"\\'") %>')">🗑</button>
             </div>
           </td>
         </tr>
@@ -141,34 +122,28 @@
   <% } %>
 </div>
 
-<!-- Modal: Marcar Recebido -->
+<!-- Modal Recebido -->
 <div class="modal-overlay" id="modalRecebido">
   <div class="modal">
-    <div class="modal-title">
-      <svg fill="none" viewBox="0 0 24 24" stroke="currentColor" style="width:20px;height:20px;color:#059669"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
-      Confirmar Recebimento
-    </div>
+    <div class="modal-title">✅ Confirmar Recebimento</div>
     <p id="modalRecebidoText" style="font-size:.85rem;color:#64748b;margin-bottom:16px"></p>
     <form id="formRecebido" method="POST">
       <div class="form-group">
-        <label class="form-label">Data de Recebimento *</label>
+        <label class="form-label">Data e Hora do Recebimento *</label>
         <input class="form-control" type="datetime-local" name="data_recebimento" id="dataRecebimento" required>
       </div>
       <div class="modal-actions">
         <button type="button" class="btn btn-outline" data-dismiss="modal">Cancelar</button>
-        <button type="submit" class="btn btn-success">Confirmar Recebimento</button>
+        <button type="submit" class="btn btn-success">Confirmar</button>
       </div>
     </form>
   </div>
 </div>
 
-<!-- Modal: Confirmar Exclusão -->
+<!-- Modal Excluir -->
 <div class="modal-overlay" id="modalExcluir">
   <div class="modal">
-    <div class="modal-title">
-      <svg fill="none" viewBox="0 0 24 24" stroke="currentColor" style="width:20px;height:20px;color:#dc2626"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/></svg>
-      Confirmar Exclusão
-    </div>
+    <div class="modal-title" style="color:#dc2626">⚠ Confirmar Exclusão</div>
     <p id="modalExcluirText" style="font-size:.85rem;color:#64748b;margin-bottom:16px"></p>
     <form id="formExcluir" method="POST">
       <div class="modal-actions">
@@ -180,19 +155,17 @@
 </div>
 
 <script>
-  // Preenche data/hora atual no modal de recebido
   function abrirModalRecebido(id, fornecedor) {
     const now = new Date();
     now.setMinutes(now.getMinutes() - now.getTimezoneOffset());
     document.getElementById('dataRecebimento').value = now.toISOString().slice(0, 16);
     document.getElementById('formRecebido').action = `/agendamentos/${id}/recebido`;
-    document.getElementById('modalRecebidoText').textContent = `Confirmar recebimento do agendamento de: ${fornecedor}`;
+    document.getElementById('modalRecebidoText').textContent = `Confirmar recebimento de: ${fornecedor}`;
     document.getElementById('modalRecebido').classList.add('active');
   }
-
   function confirmarExclusao(id, fornecedor) {
     document.getElementById('formExcluir').action = `/agendamentos/${id}/excluir`;
-    document.getElementById('modalExcluirText').textContent = `Tem certeza que deseja excluir o agendamento de: ${fornecedor}? Esta ação não pode ser desfeita.`;
+    document.getElementById('modalExcluirText').textContent = `Excluir agendamento de "${fornecedor}"? Esta ação não pode ser desfeita.`;
     document.getElementById('modalExcluir').classList.add('active');
   }
 </script>

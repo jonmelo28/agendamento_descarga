@@ -1,4 +1,5 @@
 const BotUsuarioModel = require('../models/botUsuario');
+const BotRotaModel    = require('../models/botRota');
 
 const BotUsuarioController = {
   async listar(req, res) {
@@ -16,30 +17,40 @@ const BotUsuarioController = {
   },
 
   exibirFormCriar(req, res) {
-    res.render('bot-usuarios/form', { botUsuario: null, erro: null });
+    BotRotaModel.listar(true).then(rotas => {
+      res.render('bot-usuarios/form', { botUsuario: null, erro: null, rotas });
+    });
   },
 
   async criar(req, res) {
     const { telegram_id, username, nome } = req.body;
+    // permissoes pode vir como string (1 item) ou array
+    let permissoes = req.body.permissoes || [];
+    if (!Array.isArray(permissoes)) permissoes = [permissoes];
+    permissoes = permissoes.map(Number).filter(Boolean);
 
     if (!telegram_id || !nome) {
-      return res.render('bot-usuarios/form', { botUsuario: req.body, erro: 'ID do Telegram e nome são obrigatórios.' });
+      const rotas = await BotRotaModel.listar(true);
+      return res.render('bot-usuarios/form', { botUsuario: { ...req.body, permissoes }, erro: 'ID do Telegram e nome são obrigatórios.', rotas });
     }
 
     if (isNaN(telegram_id)) {
-      return res.render('bot-usuarios/form', { botUsuario: req.body, erro: 'ID do Telegram deve ser numérico.' });
+      const rotas = await BotRotaModel.listar(true);
+      return res.render('bot-usuarios/form', { botUsuario: { ...req.body, permissoes }, erro: 'ID do Telegram deve ser numérico.', rotas });
     }
 
     try {
       const existente = await BotUsuarioModel.buscarPorTelegramId(telegram_id);
       if (existente) {
-        return res.render('bot-usuarios/form', { botUsuario: req.body, erro: 'Telegram ID já cadastrado.' });
+        const rotas = await BotRotaModel.listar(true);
+        return res.render('bot-usuarios/form', { botUsuario: { ...req.body, permissoes }, erro: 'Telegram ID já cadastrado.', rotas });
       }
-      await BotUsuarioModel.criar({ telegram_id, username, nome });
+      await BotUsuarioModel.criar({ telegram_id, username, nome, permissoes });
       return res.redirect('/bot-usuarios?sucesso=Usuário+do+bot+criado+com+sucesso!');
     } catch (err) {
       console.error('Erro ao criar usuário do bot:', err);
-      return res.render('bot-usuarios/form', { botUsuario: req.body, erro: 'Erro ao salvar usuário.' });
+      const rotas = await BotRotaModel.listar(true);
+      return res.render('bot-usuarios/form', { botUsuario: { ...req.body, permissoes }, erro: 'Erro ao salvar usuário.', rotas });
     }
   },
 
@@ -47,7 +58,8 @@ const BotUsuarioController = {
     try {
       const botUsuario = await BotUsuarioModel.buscarPorId(req.params.id);
       if (!botUsuario) return res.redirect('/bot-usuarios?erro=Usuário+não+encontrado.');
-      res.render('bot-usuarios/form', { botUsuario, erro: null });
+      const rotas = await BotRotaModel.listar(true);
+      res.render('bot-usuarios/form', { botUsuario, erro: null, rotas });
     } catch (err) {
       res.redirect('/bot-usuarios?erro=Erro+ao+carregar+usuário.');
     }
@@ -56,17 +68,23 @@ const BotUsuarioController = {
   async atualizar(req, res) {
     const { username, nome, ativo } = req.body;
     const { id } = req.params;
+    // permissoes pode vir como string (1 item) ou array
+    let permissoes = req.body.permissoes || [];
+    if (!Array.isArray(permissoes)) permissoes = [permissoes];
+    permissoes = permissoes.map(Number).filter(Boolean);
 
     if (!nome) {
       const botUsuario = await BotUsuarioModel.buscarPorId(id);
+      const rotas = await BotRotaModel.listar(true);
       return res.render('bot-usuarios/form', {
-        botUsuario: { ...botUsuario, ...req.body },
+        botUsuario: { ...botUsuario, ...req.body, permissoes },
         erro: 'Nome é obrigatório.',
+        rotas,
       });
     }
 
     try {
-      await BotUsuarioModel.atualizar(id, { username, nome, ativo: ativo === '1' ? 1 : 0 });
+      await BotUsuarioModel.atualizar(id, { username, nome, ativo: ativo === '1' ? 1 : 0, permissoes });
       return res.redirect('/bot-usuarios?sucesso=Usuário+atualizado+com+sucesso!');
     } catch (err) {
       console.error('Erro ao atualizar usuário do bot:', err);

@@ -1,0 +1,109 @@
+<%
+  titulo = 'Métricas / Capacidade Diária';
+  activePage = 'metricas';
+%>
+<%- include('../partials/header') %>
+
+<% if (sucesso) { %><div class="alert alert-success">✓ <%= sucesso %></div><% } %>
+<% if (erro)    { %><div class="alert alert-danger">⚠ <%= erro %></div><% } %>
+
+<div style="display:grid;grid-template-columns:1fr 1fr;gap:20px;max-width:900px">
+
+  <!-- Formulário de métricas -->
+  <div class="card" style="grid-column:1/-1">
+    <div class="card-header">
+      <span class="card-title">⚙️ Configuração de Capacidade</span>
+    </div>
+    <div class="card-body">
+      <div class="alert" style="background:#eff6ff;border-left:4px solid #3b82f6;color:#1e40af;margin-bottom:20px">
+        ℹ️ <strong>Como funciona:</strong> Cada tipo de veículo consome uma quantidade de "vagões" do limite diário.
+        Ex.: se o limite é 8 vagões e um bitrem consome 2, então no máximo 4 bitrems cabem no dia.
+        Você pode misturar tipos — o sistema somará os vagões usados.
+      </div>
+
+      <form method="POST" action="/metricas">
+        <div class="form-grid">
+          <div class="form-group">
+            <label class="form-label">Máximo de Vagões por Dia *</label>
+            <input class="form-control" type="number" name="max_carros_dia" min="1" max="999"
+              value="<%= metricas ? metricas.max_carros_dia : 8 %>" required>
+            <small style="color:#64748b;font-size:.72rem">Total de "slots" disponíveis no dia (em vagões)</small>
+          </div>
+          <div class="form-group">
+            <label class="form-label">Volume Máximo por Dia</label>
+            <input class="form-control" type="number" name="max_volume_dia" min="0"
+              value="<%= metricas ? metricas.max_volume_dia : 0 %>" required>
+            <small style="color:#64748b;font-size:.72rem">0 = sem limite de volume</small>
+          </div>
+        </div>
+
+        <hr style="margin:20px 0;border-color:#e2e8f0">
+        <h4 style="font-size:.85rem;font-weight:600;color:#334155;margin-bottom:14px">Vagões consumidos por tipo de veículo</h4>
+
+        <div class="form-grid-3" style="gap:12px 20px">
+          <div class="form-group">
+            <label class="form-label">🚛 Carreta</label>
+            <input class="form-control" type="number" name="vagoes_carreta" min="1" max="99"
+              value="<%= metricas ? metricas.vagoes_carreta : 1 %>" required>
+          </div>
+          <div class="form-group">
+            <label class="form-label">🚛🚛 Bitrem</label>
+            <input class="form-control" type="number" name="vagoes_bitrem" min="1" max="99"
+              value="<%= metricas ? metricas.vagoes_bitrem : 2 %>" required>
+          </div>
+          <div class="form-group">
+            <label class="form-label">🚚 Truck</label>
+            <input class="form-control" type="number" name="vagoes_truck" min="1" max="99"
+              value="<%= metricas ? metricas.vagoes_truck : 1 %>" required>
+          </div>
+          <div class="form-group">
+            <label class="form-label">🚐 Outros</label>
+            <input class="form-control" type="number" name="vagoes_outros" min="1" max="99"
+              value="<%= metricas ? metricas.vagoes_outros : 1 %>" required>
+          </div>
+        </div>
+
+        <div style="display:flex;justify-content:flex-end;margin-top:16px">
+          <button type="submit" class="btn btn-primary">💾 Salvar Configurações</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- Exemplo visual -->
+  <% if (metricas) { %>
+  <div class="card" style="grid-column:1/-1">
+    <div class="card-header"><span class="card-title">📊 Resumo da Configuração Atual</span></div>
+    <div class="card-body">
+      <div style="display:flex;gap:16px;flex-wrap:wrap">
+        <div style="background:#eff6ff;border-radius:8px;padding:16px 20px;min-width:160px;text-align:center">
+          <div style="font-size:1.8rem;font-weight:700;color:#1d4ed8"><%= metricas.max_carros_dia %></div>
+          <div style="font-size:.78rem;color:#1e40af">vagões/dia (máx)</div>
+        </div>
+        <div style="background:#f0fdf4;border-radius:8px;padding:16px 20px;min-width:160px;text-align:center">
+          <div style="font-size:1.8rem;font-weight:700;color:#15803d"><%= metricas.max_volume_dia > 0 ? metricas.max_volume_dia.toLocaleString('pt-BR') : '∞' %></div>
+          <div style="font-size:.78rem;color:#166534">volume máx/dia</div>
+        </div>
+        <div style="background:#fefce8;border-radius:8px;padding:16px 20px;min-width:160px;text-align:center">
+          <div style="font-size:.85rem;color:#713f12">
+            <div>🚛 Carreta: <strong><%= metricas.vagoes_carreta %></strong> vagão(s)</div>
+            <div>🚛🚛 Bitrem: <strong><%= metricas.vagoes_bitrem %></strong> vagão(s)</div>
+            <div>🚚 Truck: <strong><%= metricas.vagoes_truck %></strong> vagão(s)</div>
+            <div>🚐 Outros: <strong><%= metricas.vagoes_outros %></strong> vagão(s)</div>
+          </div>
+        </div>
+        <div style="background:#f5f3ff;border-radius:8px;padding:16px 20px;min-width:200px">
+          <div style="font-size:.78rem;color:#5b21b6;font-weight:600;margin-bottom:6px">Exemplos de capacidade:</div>
+          <div style="font-size:.8rem;color:#6d28d9">
+            <div>Só carretas: <strong><%= Math.floor(metricas.max_carros_dia / metricas.vagoes_carreta) %></strong> veíc.</div>
+            <div>Só bitrems: <strong><%= Math.floor(metricas.max_carros_dia / metricas.vagoes_bitrem) %></strong> veíc.</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+  <% } %>
+
+</div>
+
+<%- include('../partials/footer') %>

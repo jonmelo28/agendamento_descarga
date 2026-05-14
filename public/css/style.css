@@ -461,3 +461,19 @@ table.data-table {
   .sidebar.open { transform: translateX(0); }
   .main-content { margin-left: 0; }
 }
+
+/* ---- Linhas coloridas por data ---- */
+.data-table tbody tr.linha-azul   { background: #eff6ff !important; }
+.data-table tbody tr.linha-azul:hover { background: #dbeafe !important; }
+.data-table tbody tr.linha-verde  { background: #f0fdf4 !important; }
+.data-table tbody tr.linha-verde:hover { background: #dcfce7 !important; }
+
+.data-table tbody tr.linha-azul  td { border-bottom-color: #bfdbfe; }
+.data-table tbody tr.linha-verde td { border-bottom-color: #bbf7d0; }
+
+/* Badge da origem do agendamento */
+.badge-bot    { background: #fce7f3; color: #9d174d; }
+
+/* Indicador de origem */
+.origem-bot   { font-size:.68rem; font-weight:600; color:#9d174d; background:#fce7f3; padding:2px 6px; border-radius:4px; }
+.origem-portal{ font-size:.68rem; color:#64748b; }
