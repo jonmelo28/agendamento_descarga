@@ -1,5 +1,5 @@
 const AgendamentoModel = require('../models/agendamento');
-const MetricasModel    = require('../models/metricas');
+const MetricasModel = require('../models/metricas');
 const moment = require('moment');
 moment.locale('pt-br');
 
@@ -42,9 +42,9 @@ const AgendamentoController = {
   },
 
   async criar(req, res) {
-    const { nome_fornecedor, numeros_notas, data_agendamento, canal, volume, contato, tipo_veiculo } = req.body;
+    const { nome_fornecedor, numeros_notas, data_agendamento, volume, contato, tipo_veiculo } = req.body;
 
-    if (!nome_fornecedor || !numeros_notas || !data_agendamento || !canal) {
+    if (!nome_fornecedor || !data_agendamento) {
       return res.render('agendamentos/form', { agendamento: req.body, erro: 'Campos obrigatórios não preenchidos.' });
     }
 
@@ -59,8 +59,8 @@ const AgendamentoController = {
     try {
       await AgendamentoModel.criar({
         nome_fornecedor: nome_fornecedor.trim(),
-        numeros_notas:   numeros_notas.trim(),
-        data_agendamento, canal: canal.trim(),
+        numeros_notas: numeros_notas ? numeros_notas.trim() : null,
+        data_agendamento,
         volume: parseInt(volume) || null,
         contato: contato ? contato.trim() : null,
         tipo_veiculo: tipo_veiculo || 'carreta',
@@ -85,10 +85,10 @@ const AgendamentoController = {
   },
 
   async atualizar(req, res) {
-    const { nome_fornecedor, numeros_notas, data_agendamento, canal, volume, contato, tipo_veiculo } = req.body;
+    const { nome_fornecedor, numeros_notas, data_agendamento, volume, contato, tipo_veiculo } = req.body;
     const { id } = req.params;
 
-    if (!nome_fornecedor || !numeros_notas || !data_agendamento || !canal) {
+    if (!nome_fornecedor || !data_agendamento) {
       const agendamento = await AgendamentoModel.buscarPorId(id);
       return res.render('agendamentos/form', {
         agendamento: { ...agendamento, ...req.body }, erro: 'Campos obrigatórios não preenchidos.',
@@ -106,7 +106,7 @@ const AgendamentoController = {
 
     try {
       await AgendamentoModel.atualizar(id, {
-        nome_fornecedor, numeros_notas, data_agendamento, canal,
+        nome_fornecedor, numeros_notas, data_agendamento,
         volume: parseInt(volume) || null,
         contato: contato ? contato.trim() : null,
         tipo_veiculo: tipo_veiculo || 'carreta',
