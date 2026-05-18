@@ -28,22 +28,22 @@ const AgendamentoModel = {
   async criar({ nome_fornecedor, numeros_notas, data_agendamento, canal, volume, contato, tipo_veiculo, origem, usuario_id }) {
     const [result] = await pool.query(
       `INSERT INTO agendamentos
-        (nome_fornecedor, numeros_notas, data_agendamento, canal, volume, contato, tipo_veiculo, origem, usuario_id)
-       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)`,
-      [nome_fornecedor, numeros_notas, data_agendamento, canal,
+        (nome_fornecedor, numeros_notas, data_agendamento, volume, contato, tipo_veiculo, origem, usuario_id)
+       VALUES (?, ?, ?, ?, ?, ?, ?, ?)`,
+      [nome_fornecedor, numeros_notas, data_agendamento,
        volume || null, contato || null,
        tipo_veiculo || 'carreta', origem || 'portal', usuario_id]
     );
     return result.insertId;
   },
 
-  async atualizar(id, { nome_fornecedor, numeros_notas, data_agendamento, canal, volume, contato, tipo_veiculo }) {
+  async atualizar(id, { nome_fornecedor, numeros_notas, data_agendamento, volume, contato, tipo_veiculo }) {
     const [result] = await pool.query(
       `UPDATE agendamentos
-       SET nome_fornecedor=?, numeros_notas=?, data_agendamento=?, canal=?,
+       SET nome_fornecedor=?, numeros_notas=?, data_agendamento=?,
            volume=?, contato=?, tipo_veiculo=?
        WHERE id = ?`,
-      [nome_fornecedor, numeros_notas, data_agendamento, canal,
+      [nome_fornecedor, numeros_notas, data_agendamento,
        volume || null, contato || null, tipo_veiculo || 'carreta', id]
     );
     return result.affectedRows;

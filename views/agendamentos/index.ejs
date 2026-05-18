@@ -129,10 +129,10 @@
                                   title="Editar">✏️</a>
                                 <% if (!ag.recebido) { %>
                                   <button class="btn btn-success btn-sm btn-icon" title="Marcar Recebido"
-                                    onclick="abrirModalRecebido(<%= ag.id %>, <%- JSON.stringify(ag.nome_fornecedor) %>)">✓</button>
+                                    onclick='abrirModalRecebido(<%= ag.id %>, <%- JSON.stringify(ag.nome_fornecedor) %>)'>✓</button>
                                   <% } %>
                                     <button class="btn btn-danger btn-sm btn-icon" title="Excluir"
-                                      onclick="confirmarExclusao(<%= ag.id %>, <%- JSON.stringify(ag.nome_fornecedor) %>)">🗑</button>
+                                      onclick='confirmarExclusao(<%= ag.id %>, <%- JSON.stringify(ag.nome_fornecedor) %>)'>🗑</button>
                               </div>
                             </td>
                           </tr>
