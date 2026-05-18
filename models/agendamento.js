@@ -25,7 +25,7 @@ const AgendamentoModel = {
     return rows[0] || null;
   },
 
-  async criar({ nome_fornecedor, numeros_notas, data_agendamento, canal, volume, contato, tipo_veiculo, origem, usuario_id }) {
+  async criar({ nome_fornecedor, numeros_notas, data_agendamento, volume, contato, tipo_veiculo, origem, usuario_id }) {
     const [result] = await pool.query(
       `INSERT INTO agendamentos
         (nome_fornecedor, numeros_notas, data_agendamento, volume, contato, tipo_veiculo, origem, usuario_id)
