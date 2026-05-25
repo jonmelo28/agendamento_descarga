@@ -1,0 +1,195 @@
+<% titulo='Agendamentos' ; activePage='agendamentos' ; %>
+  <%- include('../partials/header') %>
+
+    <% if (sucesso) { %>
+      <div class="alert alert-success">✓ <%= sucesso %>
+      </div>
+      <% } %>
+        <% if (erro) { %>
+          <div class="alert alert-danger">⚠ <%= erro %>
+          </div>
+          <% } %>
+
+            <!-- Filtros -->
+            <form method="GET" action="/agendamentos" class="filter-bar">
+              <div class="form-group">
+                <label class="form-label">Fornecedor</label>
+                <input class="form-control" type="text" name="fornecedor" value="<%= filtros.fornecedor || '' %>"
+                  placeholder="Buscar...">
+              </div>
+              <div class="form-group">
+                <label class="form-label">Data inicial</label>
+                <input class="form-control" type="date" name="dataInicio" value="<%= filtros.dataInicio || '' %>">
+              </div>
+              <div class="form-group">
+                <label class="form-label">Data final</label>
+                <input class="form-control" type="date" name="dataFim" value="<%= filtros.dataFim || '' %>">
+              </div>
+              <div class="form-group">
+                <label class="form-label">Status</label>
+                <select class="form-control" name="recebido">
+                  <option value="">Todos</option>
+                  <option value="0" <%=filtros.recebido==='0' ? 'selected' : '' %>>Pendentes</option>
+                  <option value="1" <%=filtros.recebido==='1' ? 'selected' : '' %>>Recebidos</option>
+                </select>
+              </div>
+              <button type="submit" class="btn btn-primary btn-sm">Filtrar</button>
+              <a href="/agendamentos" class="btn btn-outline btn-sm">Limpar</a>
+            </form>
+
+            <div class="card">
+              <div class="card-header">
+                <span class="card-title">
+                  Agendamentos
+                  <span style="font-size:.75rem;font-weight:400;color:#64748b;margin-left:6px">(<%= agendamentos.length
+                      %> registro(s))</span>
+                </span>
+                <div style="display:flex;gap:8px;flex-wrap:wrap">
+                  <a href="/agendamentos/exportar/pdf<%= Object.keys(filtros).filter(k=>filtros[k]).length ? '?' + new URLSearchParams(Object.fromEntries(Object.entries(filtros).filter(([,v])=>v))).toString() : '' %>"
+                    class="btn btn-outline btn-sm" target="_blank">📄 Exportar PDF</a>
+                  <a href="/agendamentos/novo" class="btn btn-primary btn-sm">+ Novo</a>
+                </div>
+              </div>
+
+              <% if (agendamentos.length===0) { %>
+                <div class="empty-state">
+                  <p>Nenhum agendamento encontrado.</p>
+                </div>
+                <% } else { %>
+                  <div class="table-wrapper">
+                    <table class="data-table">
+                      <thead>
+                        <tr>
+                          <th>#</th>
+                          <th>Fornecedor</th>
+                          <th>Nº Notas</th>
+                          <th>Agendamento</th>
+                          <th>Dia</th>
+                          <th>Tipo</th>
+                          <th>Volume</th>
+                          <th>Contato</th>
+                          <th>Status</th>
+                          <th>Recebimento</th>
+                          <th style="text-align:right">Ações</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        <% agendamentos.forEach(ag=> {
+                          const dataKey = ag.data_agendamento.toString().split('T')[0];
+                          const classe = corPorData[dataKey] || '';
+                          %>
+                          <tr class="<%= classe %>">
+                            <td>
+                              <span class="mono" style="color:#64748b">
+                                <%= ag.id %>
+                              </span>
+                              <% if (ag.origem==='bot' ) { %><br><span class="origem-bot">bot</span>
+                                <% } %>
+                            </td>
+                            <td><strong>
+                                <%= ag.nome_fornecedor %>
+                              </strong></td>
+                            <td><span class="mono" style="font-size:.78rem">
+                                <%= ag.numeros_notas %>
+                              </span></td>
+                            <td>
+                              <%= moment(ag.data_agendamento).format('DD/MM/YYYY') %>
+                            </td>
+                            <td>
+                              <%= moment(ag.data_agendamento).format('dddd') %>
+                            </td>
+                            <td>
+                              <span class="badge <%= ag.tipo_veiculo === 'bitrem' ? 'badge-info' : 'badge-warning' %>"
+                                style="font-size:.7rem">
+                                <%= ag.tipo_veiculo %>
+                              </span>
+                            </td>
+                            <td>
+                              <%= ag.volume ? ag.volume.toLocaleString('pt-BR') : '—' %>
+                            </td>
+                            <td style="font-size:.78rem">
+                              <%= ag.contato || '—' %>
+                            </td>
+                            <td>
+                              <% if (ag.recebido) { %>
+                                <span class="badge badge-success">✓ Recebido</span>
+                                <% } else { %>
+                                  <span class="badge badge-warning">⏳ Pendente</span>
+                                  <% } %>
+                            </td>
+                            <td style="font-size:.78rem">
+                              <% if (ag.data_recebimento) { %>
+                                <%= moment(ag.data_recebimento).format('DD/MM/YYYY') %>
+                                  <% } else { %><span style="color:#94a3b8">—</span>
+                                    <% } %>
+                            </td>
+                            <td>
+                              <div style="display:flex;gap:4px;justify-content:flex-end">
+                                <a href="/agendamentos/<%= ag.id %>/editar" class="btn btn-warning btn-sm btn-icon"
+                                  title="Editar">✏️</a>
+                                <% if (!ag.recebido) { %>
+                                  <button class="btn btn-success btn-sm btn-icon" title="Marcar Recebido"
+                                    onclick='abrirModalRecebido(<%= ag.id %>, <%- JSON.stringify(ag.nome_fornecedor) %>)'>✓</button>
+                                  <% } %>
+                                    <button class="btn btn-danger btn-sm btn-icon" title="Excluir"
+                                      onclick='confirmarExclusao(<%= ag.id %>, <%- JSON.stringify(ag.nome_fornecedor) %>)'>🗑</button>
+                              </div>
+                            </td>
+                          </tr>
+                          <% }); %>
+                      </tbody>
+                    </table>
+                  </div>
+                  <% } %>
+            </div>
+
+            <!-- Modal Recebido -->
+            <div class="modal-overlay" id="modalRecebido">
+              <div class="modal">
+                <div class="modal-title">✅ Confirmar Recebimento</div>
+                <p id="modalRecebidoText" style="font-size:.85rem;color:#64748b;margin-bottom:16px"></p>
+                <form id="formRecebido" method="POST">
+                  <div class="form-group">
+                    <label class="form-label">Data e Hora do Recebimento *</label>
+                    <input class="form-control" type="datetime-local" name="data_recebimento" id="dataRecebimento"
+                      required>
+                  </div>
+                  <div class="modal-actions">
+                    <button type="button" class="btn btn-outline" data-dismiss="modal">Cancelar</button>
+                    <button type="submit" class="btn btn-success">Confirmar</button>
+                  </div>
+                </form>
+              </div>
+            </div>
+
+            <!-- Modal Excluir -->
+            <div class="modal-overlay" id="modalExcluir">
+              <div class="modal">
+                <div class="modal-title" style="color:#dc2626">⚠ Confirmar Exclusão</div>
+                <p id="modalExcluirText" style="font-size:.85rem;color:#64748b;margin-bottom:16px"></p>
+                <form id="formExcluir" method="POST">
+                  <div class="modal-actions">
+                    <button type="button" class="btn btn-outline" data-dismiss="modal">Cancelar</button>
+                    <button type="submit" class="btn btn-danger">Excluir</button>
+                  </div>
+                </form>
+              </div>
+            </div>
+
+            <script>
+              function abrirModalRecebido(id, fornecedor) {
+                const now = new Date();
+                now.setMinutes(now.getMinutes() - now.getTimezoneOffset());
+                document.getElementById('dataRecebimento').value = now.toISOString().slice(0, 16);
+                document.getElementById('formRecebido').action = `/agendamentos/${id}/recebido`;
+                document.getElementById('modalRecebidoText').textContent = `Confirmar recebimento de: ${fornecedor}`;
+                document.getElementById('modalRecebido').classList.add('active');
+              }
+              function confirmarExclusao(id, fornecedor) {
+                document.getElementById('formExcluir').action = `/agendamentos/${id}/excluir`;
+                document.getElementById('modalExcluirText').textContent = `Excluir agendamento de "${fornecedor}"? Esta ação não pode ser desfeita.`;
+                document.getElementById('modalExcluir').classList.add('active');
+              }
+            </script>
+
+            <%- include('../partials/footer') %>

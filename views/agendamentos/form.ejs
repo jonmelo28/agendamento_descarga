@@ -1,0 +1,84 @@
+<%
+  const isEdicao = agendamento && agendamento.id;
+  titulo = isEdicao ? 'Editar Agendamento' : 'Novo Agendamento';
+  activePage = isEdicao ? 'agendamentos' : 'agendamentos-novo';
+  function normalizarDataForm(raw) {
+    if (!raw) return '';
+    if (raw instanceof Date) {
+      const ano = raw.getUTCFullYear();
+      const mes = String(raw.getUTCMonth() + 1).padStart(2, '0');
+      const dia = String(raw.getUTCDate()).padStart(2, '0');
+      return `${ano}-${mes}-${dia}`;
+    }
+    return String(raw).substring(0, 10);
+  }
+  const dataParaInput = normalizarDataForm(agendamento && agendamento.data_agendamento);
+%>
+<%- include('../partials/header') %>
+
+<div style="margin-bottom:16px">
+  <a href="/agendamentos" class="btn btn-outline btn-sm">← Voltar</a>
+</div>
+
+<div class="card" style="max-width:780px">
+  <div class="card-header"><span class="card-title"><%= titulo %></span></div>
+  <div class="card-body">
+    <% if (erro) { %>
+    <div class="alert alert-danger">⚠ <%= erro %></div>
+    <% } %>
+
+    <form method="POST" action="<%= isEdicao ? `/agendamentos/${agendamento.id}` : '/agendamentos' %>">
+      <div class="form-grid">
+        <div class="form-group">
+          <label class="form-label">Nome do Fornecedor *</label>
+          <input class="form-control" type="text" name="nome_fornecedor"
+            value="<%= agendamento ? agendamento.nome_fornecedor : '' %>" required autofocus>
+        </div>
+        <div class="form-group">
+          <label class="form-label">Números das Notas</label>
+          <input class="form-control" type="text" name="numeros_notas"
+            value="<%= agendamento ? agendamento.numeros_notas : '' %>" placeholder="Ex.: NF-001/NF-002">
+          <small style="color:#64748b;font-size:.72rem">Separe por barras</small>
+        </div>
+      </div>
+
+      <div class="form-grid">
+        <div class="form-group">
+          <label class="form-label">Data do Agendamento *</label>
+          <input class="form-control" type="date" name="data_agendamento" value="<%= dataParaInput %>" required>
+        </div>
+        <div class="form-group">
+          <label class="form-label">Tipo de Veículo *</label>
+          <select class="form-control" name="tipo_veiculo" required>
+            <% [['carreta','Carreta'],['bitrem','Bitrem'],['truck','Truck'],['outros','Outros']].forEach(([v,l]) => { %>
+            <option value="<%= v %>" <%= agendamento && agendamento.tipo_veiculo === v ? 'selected' : '' %>><%= l %></option>
+            <% }); %>
+          </select>
+        </div>
+      </div>
+
+      <div class="form-grid">
+        <div class="form-group">
+          <label class="form-label">Volume (qtd. volumes)</label>
+          <input class="form-control" type="number" name="volume" min="0"
+            value="<%= agendamento && agendamento.volume ? agendamento.volume : '' %>" placeholder="Ex.: 500">
+        </div>
+        <div class="form-group">
+          <label class="form-label">Contato (e-mail ou telefone)</label>
+          <input class="form-control" type="text" name="contato"
+            value="<%= agendamento && agendamento.contato ? agendamento.contato : '' %>"
+            placeholder="Ex.: contato@empresa.com ou 99 99999-9999">
+        </div>
+      </div>
+
+      <div style="display:flex;gap:10px;justify-content:flex-end;margin-top:8px">
+        <a href="/agendamentos" class="btn btn-outline">Cancelar</a>
+        <button type="submit" class="btn btn-primary">
+          <%= isEdicao ? 'Salvar Alterações' : 'Criar Agendamento' %>
+        </button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<%- include('../partials/footer') %>

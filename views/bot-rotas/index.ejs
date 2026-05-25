@@ -1,0 +1,83 @@
+<%
+  titulo = 'Rotas / Menu do Bot';
+  activePage = 'bot-rotas';
+%>
+<%- include('../partials/header') %>
+
+<% if (sucesso) { %><div class="alert alert-success">✓ <%= sucesso %></div><% } %>
+<% if (erro)    { %><div class="alert alert-danger">⚠ <%= erro %></div><% } %>
+
+<div class="alert" style="background:#eff6ff;border-left:4px solid #3b82f6;color:#1e40af;margin-bottom:20px">
+  ℹ️ Estas rotas são exibidas quando o usuário envia <strong>"oi"</strong> ou <strong>/start</strong> para o bot. As ativas aparecem como opções clicáveis.
+</div>
+
+<div class="card">
+  <div class="card-header">
+    <span class="card-title">Rotas do Bot (<%= rotas.length %>)</span>
+    <a href="/bot-rotas/novo" class="btn btn-primary btn-sm">+ Nova Rota</a>
+  </div>
+
+  <% if (rotas.length === 0) { %>
+    <div class="empty-state"><p>Nenhuma rota cadastrada.</p></div>
+  <% } else { %>
+  <div class="table-wrapper">
+    <table class="data-table">
+      <thead>
+        <tr>
+          <th>Ordem</th>
+          <th>Título (exibido no bot)</th>
+          <th>Descrição / Resposta</th>
+          <th>Status</th>
+          <th style="text-align:right">Ações</th>
+        </tr>
+      </thead>
+      <tbody>
+        <% rotas.forEach(r => { %>
+        <tr>
+          <td><span class="mono"><%= r.ordem %></span></td>
+          <td><strong><%= r.titulo %></strong></td>
+          <td style="font-size:.8rem;color:#64748b;max-width:300px">
+            <%= r.descricao ? r.descricao.substring(0, 80) + (r.descricao.length > 80 ? '...' : '') : '—' %>
+          </td>
+          <td>
+            <span class="badge <%= r.ativo ? 'badge-success' : 'badge-danger' %>">
+              <%= r.ativo ? 'Ativa' : 'Inativa' %>
+            </span>
+          </td>
+          <td>
+            <div style="display:flex;gap:5px;justify-content:flex-end">
+              <a href="/bot-rotas/<%= r.id %>/editar" class="btn btn-warning btn-sm btn-icon" title="Editar">✏️</a>
+              <button class="btn btn-danger btn-sm btn-icon" title="Excluir"
+                onclick="confirmarExclusao(<%= r.id %>, '<%= r.titulo.replace(/'/g,"\\'") %>')">🗑</button>
+            </div>
+          </td>
+        </tr>
+        <% }); %>
+      </tbody>
+    </table>
+  </div>
+  <% } %>
+</div>
+
+<!-- Modal -->
+<div class="modal-overlay" id="modalExcluir">
+  <div class="modal">
+    <div class="modal-title" style="color:#dc2626">⚠ Excluir Rota</div>
+    <p id="modalExcluirText" style="font-size:.85rem;color:#64748b;margin-bottom:16px"></p>
+    <form id="formExcluir" method="POST">
+      <div class="modal-actions">
+        <button type="button" class="btn btn-outline" data-dismiss="modal">Cancelar</button>
+        <button type="submit" class="btn btn-danger">Excluir</button>
+      </div>
+    </form>
+  </div>
+</div>
+<script>
+  function confirmarExclusao(id, titulo) {
+    document.getElementById('formExcluir').action = `/bot-rotas/${id}/excluir`;
+    document.getElementById('modalExcluirText').textContent = `Excluir a rota "${titulo}"?`;
+    document.getElementById('modalExcluir').classList.add('active');
+  }
+</script>
+
+<%- include('../partials/footer') %>

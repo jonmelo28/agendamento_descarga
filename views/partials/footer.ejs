@@ -1,0 +1,37 @@
+    </div><!-- /page-content -->
+
+    <footer class="main-footer">
+      <div class="footer-container">
+        <p class="footer-text">Desenvolvido por <span>Jonatha Melo</span> &copy; 2026</p>
+      </div>
+    </footer>
+
+  </main><!-- /main-content -->
+</div><!-- /layout -->
+
+<script>
+  // Fechar modais ao clicar no overlay
+  document.querySelectorAll('.modal-overlay').forEach(overlay => {
+    overlay.addEventListener('click', function(e) {
+      if (e.target === this) this.classList.remove('active');
+    });
+  });
+
+  // Fechar modal via botão
+  document.querySelectorAll('[data-dismiss="modal"]').forEach(btn => {
+    btn.addEventListener('click', () => {
+      btn.closest('.modal-overlay').classList.remove('active');
+    });
+  });
+
+  // Auto-hide alerts
+  setTimeout(() => {
+    document.querySelectorAll('.alert').forEach(a => {
+      a.style.transition = 'opacity .5s';
+      a.style.opacity = '0';
+      setTimeout(() => a.remove(), 500);
+    });
+  }, 4000);
+</script>
+</body>
+</html>
